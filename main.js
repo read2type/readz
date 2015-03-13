@@ -28,6 +28,7 @@ browse('file', function(files){
   var gunzip = zlib.createGunzip();
   var source = createReadStream(first);
   var lineStream = byline.createStream();
+  var mode = document.querySelector('input[name="mode"]:checked').value;
   
   // if gzip then:
   if (first.type == 'application/x-gzip') {
@@ -57,15 +58,14 @@ browse('file', function(files){
     lineNumber++;
     if ((lineNumber + 2) % 4 == 0) {
       lineStream.pause();
-
-      // ideally we should send the line to a worker.
-      var line = data.toString();      
-      debug('Reading ' + first.name + ' -> ' + lineNumber + ' : ' + line);
-    
-    // current hack: make it async, through this setTimeout, any better options?
-    setTimeout(function(){
+      // current hack: make it async, through this setTimeout, any better options?
+      setTimeout(function(){ 
+        // ideally we should send the line to a worker.
+        var line = data.toString();      
+        debug('Reading ' + first.name + ' -> ' + lineNumber + ' : ' + line);
+        
         // this is a damn slow process, we should have a functional approach rather than managing states
-        predict('slow', line, start);
+        predict(mode, line, start);
         lineStream.resume();
       }, 1);
     }

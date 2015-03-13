@@ -28,8 +28,7 @@ SequenceString.prototype.getSpecies = function() {
 }
 
 SequenceString.prototype.search = function() {
-  //if (this.mode == 'fast')
-  this.occ = this.occFast;
+  this.occ = this.mode == 'fast' ? this.occFast : this.occSlow;
   if (this.multiplicity('N') < 1) {
     for (var key = 0; key < sequence.length; key++) {
       if (this.multiplicity(sequence[key]) > 0 ) { 
@@ -125,6 +124,14 @@ SequenceString.prototype.occFast = function (ch, loc) {
   var lo = bucket * FREQBUCKETSIZE;
   var count  = this.freqCache[bucket][ch.charCodeAt(0)];
   for (var j = lo; j < loc; j++)
+    if (this.bwt.charAt(j) == ch) 
+      count++;
+  return count;
+}
+
+SequenceString.prototype.occSlow = function (ch, loc) {
+  var count = 0;
+  for (var j = 0; j < loc; j++) 
     if (this.bwt.charAt(j) == ch) 
       count++;
   return count;
