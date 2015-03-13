@@ -17,7 +17,13 @@ function debug(text) {
   info.innerHTML = text;
 }
 
-drop('#drop', function(files){
+function browse(id, cb) {
+  document.getElementById(id).addEventListener('change', function(event){
+    cb(event.target.files);
+  }, false);
+}
+
+browse('file', function(files){
   var first = files[0];
   var gunzip = zlib.createGunzip();
   var source = createReadStream(first);
