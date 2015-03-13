@@ -1,4 +1,10 @@
 {
+
+  "scripts": {
+    "build" : "browserify main.js > bundle.js",
+    "release": "browserify main.js | uglifyjs > bundle.min.js"
+  },
+  
   "devDependencies": {
     "byline": "^4.2.1",
     "concat-stream": "^1.4.7",
@@ -7,9 +13,7 @@
     "filereader-stream": "^0.2.0",
     "readable-stream": "^1.0.33",
     "setimmediate": "^1.0.2",
-    "through": "^2.3.6",
-    "through2": "^0.6.3",
-    "webworkify": "^1.0.2"
+    "through": "^2.3.6"
   },
   "dependencies": {
     "commander": "^2.7.1"
