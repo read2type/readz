@@ -54,6 +54,10 @@ Prediction.prototype.append = function(species) {
   if (species == -1)
     return;
   var parts = species.split(';');
+
+  // save the current finding
+  this.lastParts = parts;
+  this.lastSpecies = species;
   
   for (var i = 0; i < parts.length; i++) {
     var key = translate[parts[i]-1];
@@ -91,6 +95,6 @@ module.exports = function(mode, line, start) {
   });
   prediction.setStart(start);
   prediction.setMode(mode || 'fast');
-  prediction.append(sequenceString.getSpecies());
+  prediction.append(sequenceString.getSpecies(prediction.lastParts, prediction.lastSpecies));
 }
 

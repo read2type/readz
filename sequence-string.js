@@ -9,6 +9,8 @@ var SABUCKETSIZE = 4;
 var sequence = require('./sequence');
 var species = require('./species');
 
+var _ = require('lodash');
+
 module.exports = SequenceString;
 
 function SequenceString(options) {
@@ -17,21 +19,40 @@ function SequenceString(options) {
   this.refString = options.refString;
 }
 
-SequenceString.prototype.getSpecies = function() {
+SequenceString.prototype.getSpecies = function(lastParts, lastSpecies) {
   this.ranks = this.createRanks();
   this.sfxArray = this.createSfxArray();
   this.bwt = this.createBwt();
   this.freq = this.createFreq();
   this.freqCache = this.createFreqCache();
   this.sfxArrayCache = this.createSfxArrayCache();
+  
+  // at the first time we have no sequence at all
+  if (!this.sequence)
+    // set `this.sequence` with the values from `sequence`, hopefully this the copy process properly
+    this.sequence = sequence.slice(0); // fancy huh!? :)
+   
+  // if we have `lastSpecies` and it is not equal from previous finding
+  if (lastSpecies && this.lastSpecies != lastSpecies) {
+    this.lastSpecies = lastSpecies
+
+    // reduce the sequence
+    this.sequence = _.filter(sequence, function(line){
+      // implement the filtering here
+      // we can use `lastParts` as part of the filtering process
+      return true;
+    })
+  }
+
+  // do search
   return this.search();
 }
 
 SequenceString.prototype.search = function() {
   this.occ = this.mode == 'fast' ? this.occFast : this.occSlow;
   if (this.multiplicity('N') < 1) {
-    for (var key = 0; key < sequence.length; key++) {
-      if (this.multiplicity(sequence[key]) > 0 ) { 
+    for (var key = 0; key < this.sequence.length; key++) {
+      if (this.multiplicity(this.sequence[key]) > 0 ) { 
         return species[key];
       }
     }
