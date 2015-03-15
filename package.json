@@ -9,6 +9,7 @@
     "d3": "^3.5.5",
     "drag-drop": "^2.0.0",
     "filereader-stream": "^0.2.0",
+    "neo-async": "^0.6.3",
     "readable-stream": "^1.0.33",
     "setimmediate": "^1.0.2",
     "through": "^2.3.6"

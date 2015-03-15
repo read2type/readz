@@ -9,14 +9,47 @@ var SABUCKETSIZE = 4;
 var sequence = require('./sequence');
 var species = require('./species');
 
-var _ = require('lodash');
-
 module.exports = SequenceString;
 
 function SequenceString(options) {
   options = options || {};
   this.mode = options.mode || 'fast';
   this.refString = options.refString;
+
+  this.sequence = options.reducedSequence || sequence;
+  this.species = options.reducedSpecies || species;
+  this.lastSpecies = options.lastSpecies;
+
+  if (this.sequence.length < sequence.length && this.sequence.length > 0)
+    console.log('search in sequence with length: ', this.sequence.length);
+  
+  // prepared containers for reduced arrays
+  this.reducedSequence = [];
+  this.reducedSpecies = [];
+}
+
+// FIXME: put API info in here, key is an element of species[], while index is key's index.
+SequenceString.prototype.reduce = function(key, index, handle) {
+  handle = handle || this;
+  var keyParts = key.split(';');
+
+  if (keyParts.length < handle.lastParts.length) {
+    var isSubset = true;
+    for (var i = 0; i < keyParts.length; i++) {
+      var lastSpeciesWithGuard = ';'.concat(lastSpecies).concat(';');
+      var keyPartWithGuard = ';'.concat(keyParts[i]).concat(';');
+
+      if (lastSpeciesWithGuard.indexOf(keyPartWithGuard) < 0) {
+        isSubset = false;
+        break;
+      }
+      // if it is a subset, we can use it for the next iteration.
+      if (isSubset) {
+        handle.reducedSequence.push(handle.sequence[index]);
+        handle.reducedSpecies.push(key);
+      }
+    }
+  }
 }
 
 SequenceString.prototype.getSpecies = function(lastParts, lastSpecies) {
@@ -26,24 +59,19 @@ SequenceString.prototype.getSpecies = function(lastParts, lastSpecies) {
   this.freq = this.createFreq();
   this.freqCache = this.createFreqCache();
   this.sfxArrayCache = this.createSfxArrayCache();
-  
-  // at the first time we have no sequence at all
-  if (!this.sequence)
-    // set `this.sequence` with the values from `sequence`, hopefully this the copy process properly
-    this.sequence = sequence.slice(0); // fancy huh!? :)
    
   // if we have `lastSpecies` and it is not equal from previous finding
   if (lastSpecies && this.lastSpecies != lastSpecies) {
-    this.lastSpecies = lastSpecies
+    this.lastParts = lastParts;
+    this.lastSpecies = lastSpecies;
 
-    // reduce the sequence
-    this.sequence = _.filter(sequence, function(line){
-      // implement the filtering here
-      // we can use `lastParts` as part of the filtering process
-      return true;
-    })
+    console.log('reducing array, given last species: ' + lastSpecies + ' vs. current: ' + this.lastSpecies);
+
+    // this is the main loop for sequence and species reduction
+    for (var i = 0; i < species.length; i++) {
+      this.reduce(species[i], i);
+    }
   }
-
   // do search
   return this.search();
 }
@@ -53,11 +81,15 @@ SequenceString.prototype.search = function() {
   if (this.multiplicity('N') < 1) {
     for (var key = 0; key < this.sequence.length; key++) {
       if (this.multiplicity(this.sequence[key]) > 0 ) { 
-        return species[key];
+        return {
+          species: species[key],
+          reducedSequence: this.reducedSequence,
+          reducedSpecies: this.reducedSpecies
+        }
       }
     }
   }
-  return -1;
+  return {species: -1 };
 }
 
 SequenceString.prototype.createRanks = function() {

@@ -22,6 +22,13 @@ Prediction.prototype.setMode = function(mode) {
   this.mode = mode;
 }
 
+Prediction.prototype.setReducedArrays = function(result) {
+  if (result.species == -1)
+    return;
+  this.reducedSequence = result.reducedSequence;
+  this.reducedSpecies = result.reducedSpecies;
+}
+
 Prediction.prototype.handleFast = function(sorted) {
   if (sorted.length < 2) {
     this.appendText(sorted[0][0].split('|').join(' -> '));
@@ -56,9 +63,10 @@ Prediction.prototype.append = function(species) {
   var parts = species.split(';');
 
   // save the current finding
-  this.lastParts = parts;
+  this.lastParts = parts.slice(0);
   this.lastSpecies = species;
-  
+
+  //FIXME: make it async
   for (var i = 0; i < parts.length; i++) {
     var key = translate[parts[i]-1];
     if (key in this.score)
@@ -91,10 +99,22 @@ var prediction = new Prediction();
 module.exports = function(mode, line, start) {
   var sequenceString = new SequenceString({
     mode: mode || 'fast',
-    refString: line
+    refString: line,
+    
+    // FIXME: refactor sequence to sequenceArray, species to speciesArray
+    // these two arrays will be undefined for the first iteration
+    reducedSequence: prediction.reducedSequence,
+    reducedSpecies: prediction.reducedSpecies,
+    lastSpecies: prediction.lastSpecies
   });
   prediction.setStart(start);
   prediction.setMode(mode || 'fast');
-  prediction.append(sequenceString.getSpecies(prediction.lastParts, prediction.lastSpecies));
+  
+  // result has two properties: matched species and reduced arrays.
+  var result = sequenceString.getSpecies(prediction.lastParts, prediction.lastSpecies);
+  
+  // eval the matched species.
+  prediction.append(result.species);
+  prediction.setReducedArrays(result);
 }
 
