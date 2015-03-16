@@ -3,7 +3,7 @@ var species = require('../species');
  
 // imagine we have this `lastSpecies` as the last matched species
 // var lastSpecies = '633;1';
-var lastSpecies = '474';
+var lastSpecies = '780;373;254;474;362;779;803;801;804;475;374;360;361;1079;802';
  
 var newSequence = [];
 var newSpecies = [];

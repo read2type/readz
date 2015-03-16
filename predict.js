@@ -23,10 +23,11 @@ Prediction.prototype.setMode = function(mode) {
 }
 
 Prediction.prototype.setReducedArrays = function(result) {
-  if (result.species == -1)
-    return;
-  this.reducedSequence = result.reducedSequence;
-  this.reducedSpecies = result.reducedSpecies;
+  if (result.reduced) {
+    this.reducedSequence = result.reducedSequence.slice(0);
+    this.reducedSpecies = result.reducedSpecies.slice(0);
+    console.log('array length is reduced: ', this.reducedSpecies.length);
+  }
 }
 
 Prediction.prototype.handleFast = function(sorted) {
@@ -58,10 +59,17 @@ Prediction.prototype.appendText = function(value) {
 }
 
 Prediction.prototype.append = function(species) {
+  this.nextIterationNeedsReduction = false;
   if (species == -1)
     return;
-  var parts = species.split(';');
+   
+  // the next iter needs to run array reduction
+  this.nextIterationNeedsReduction = this.lastSpecies != species;
+  
+  if (Array.isArray(this.reducedSequence))
+    console.log('current: ' + this.lastSpecies + ' vs. newly found: ' + species + ' from ' + this.reducedSequence.length + ' sequences');
 
+  var parts = species.split(';');
   // save the current finding
   this.lastParts = parts.slice(0);
   this.lastSpecies = species;
@@ -105,14 +113,16 @@ module.exports = function(mode, line, start) {
     // these two arrays will be undefined for the first iteration
     reducedSequence: prediction.reducedSequence,
     reducedSpecies: prediction.reducedSpecies,
+
     lastSpecies: prediction.lastSpecies
   });
+
   prediction.setStart(start);
   prediction.setMode(mode || 'fast');
   
   // result has two properties: matched species and reduced arrays.
-  var result = sequenceString.getSpecies(prediction.lastParts, prediction.lastSpecies);
-  
+  var result = sequenceString.getSpecies(prediction.lastSpecies, prediction.lastParts, prediction.nextIterationNeedsReduction);
+
   // eval the matched species.
   prediction.append(result.species);
   prediction.setReducedArrays(result);

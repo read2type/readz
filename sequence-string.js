@@ -15,28 +15,17 @@ function SequenceString(options) {
   options = options || {};
   this.mode = options.mode || 'fast';
   this.refString = options.refString;
-
   this.sequence = options.reducedSequence || sequence;
   this.species = options.reducedSpecies || species;
-  this.lastSpecies = options.lastSpecies;
-
-  if (this.sequence.length < sequence.length && this.sequence.length > 0)
-    console.log('search in sequence with length: ', this.sequence.length);
-  
-  // prepared containers for reduced arrays
-  this.reducedSequence = [];
-  this.reducedSpecies = [];
 }
 
 // FIXME: put API info in here, key is an element of species[], while index is key's index.
-SequenceString.prototype.reduce = function(key, index, handle) {
-  handle = handle || this;
+SequenceString.prototype.reduce = function(key, index) {
   var keyParts = key.split(';');
-
-  if (keyParts.length < handle.lastParts.length) {
+  if (keyParts.length < this.lastParts.length) {
     var isSubset = true;
     for (var i = 0; i < keyParts.length; i++) {
-      var lastSpeciesWithGuard = ';'.concat(lastSpecies).concat(';');
+      var lastSpeciesWithGuard = ';'.concat(this.lastSpecies).concat(';');
       var keyPartWithGuard = ';'.concat(keyParts[i]).concat(';');
 
       if (lastSpeciesWithGuard.indexOf(keyPartWithGuard) < 0) {
@@ -45,14 +34,16 @@ SequenceString.prototype.reduce = function(key, index, handle) {
       }
       // if it is a subset, we can use it for the next iteration.
       if (isSubset) {
-        handle.reducedSequence.push(handle.sequence[index]);
-        handle.reducedSpecies.push(key);
+        this.reducedSequence = this.reducedSequence || [];
+        this.reducedSpecies = this.reducedSpecies || [];
+        this.reducedSequence.push(this.sequence[index]);
+        this.reducedSpecies.push(key);
       }
     }
   }
 }
 
-SequenceString.prototype.getSpecies = function(lastParts, lastSpecies) {
+SequenceString.prototype.getSpecies = function(lastSpecies, lastParts, isReductionNeeded) {
   this.ranks = this.createRanks();
   this.sfxArray = this.createSfxArray();
   this.bwt = this.createBwt();
@@ -60,18 +51,27 @@ SequenceString.prototype.getSpecies = function(lastParts, lastSpecies) {
   this.freqCache = this.createFreqCache();
   this.sfxArrayCache = this.createSfxArrayCache();
    
-  // if we have `lastSpecies` and it is not equal from previous finding
-  if (lastSpecies && this.lastSpecies != lastSpecies) {
+  if (isReductionNeeded) {
     this.lastParts = lastParts;
     this.lastSpecies = lastSpecies;
-
-    console.log('reducing array, given last species: ' + lastSpecies + ' vs. current: ' + this.lastSpecies);
-
+    console.log('reducing array, given last species: ' + lastSpecies);
+    console.log('from: ', this.species.length);
     // this is the main loop for sequence and species reduction
-    for (var i = 0; i < species.length; i++) {
-      this.reduce(species[i], i);
+    for (var i = 0; i < this.species.length; i++) {
+      this.reduce(this.species[i], i);
+    }
+    
+    // if we have reduced array
+    this.reduced = Array.isArray(this.reducedSequence);
+    if (this.reduced) {
+      this.sequence = this.reducedSequence.slice(0);
+      this.species = this.reducedSpecies.slice(0);
+      console.log('to: ', this.species.length);  
+    } else {
+      console.log('to: ', this.species.length, 'it seems nothing is changed'); 
     }
   }
+
   // do search
   return this.search();
 }
@@ -81,15 +81,22 @@ SequenceString.prototype.search = function() {
   if (this.multiplicity('N') < 1) {
     for (var key = 0; key < this.sequence.length; key++) {
       if (this.multiplicity(this.sequence[key]) > 0 ) { 
-        return {
+        var matched = {
           species: species[key],
-          reducedSequence: this.reducedSequence,
-          reducedSpecies: this.reducedSpecies
+          reducedSequence: this.sequence.slice(0),
+          reducedSpecies: this.species.slice(0),
+          reduced: this.reduced
         }
+        return matched;      
       }
     }
   }
-  return {species: -1 };
+  return {
+    species: -1,
+    reducedSequence: this.sequence.slice(0),
+    reducedSpecies: this.species.slice(0),
+    reduced: this.reduced
+  };
 }
 
 SequenceString.prototype.createRanks = function() {
