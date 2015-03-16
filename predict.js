@@ -68,6 +68,8 @@ Prediction.prototype.append = function(species) {
   
   if (Array.isArray(this.reducedSequence))
     console.log('current: ' + this.lastSpecies + ' vs. newly found: ' + species + ' from ' + this.reducedSequence.length + ' sequences');
+  else 
+    console.log('current: ' + this.lastSpecies + ' vs. newly found: ' + species + ' from original sequences');
 
   var parts = species.split(';');
   // save the current finding

@@ -41,7 +41,30 @@ console.log('species ', species.length);
 for (var i = 0; i < species.length; i++) {
   reduce(species[i], i);
 }
- 
+
+sequence = newSequence.slice(0);
+species = newSpecies.slice(0);
+
 console.log('after: ');
-console.log('sequence', newSequence.length);
-console.log('species ', newSpecies.length);
+console.log('sequence', sequence.length);
+console.log('species ', species.length);
+
+// the matched species is changed after reduction
+lastSpecies = '423;422;424;428';
+
+for (var i = 0; i < species.length; i++) {
+  reduce(species[i], i);
+}
+
+sequence = newSequence.slice(0);
+species = newSpecies.slice(0);
+
+console.log('after2: ');
+console.log('sequence', sequence.length);
+console.log('species ', species.length);
+
+
+
+
+ 
+

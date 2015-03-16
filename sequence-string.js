@@ -32,13 +32,13 @@ SequenceString.prototype.reduce = function(key, index) {
         isSubset = false;
         break;
       }
-      // if it is a subset, we can use it for the next iteration.
-      if (isSubset) {
-        this.reducedSequence = this.reducedSequence || [];
-        this.reducedSpecies = this.reducedSpecies || [];
-        this.reducedSequence.push(this.sequence[index]);
-        this.reducedSpecies.push(key);
-      }
+    }
+
+    if (isSubset) {
+      this.reducedSequence = this.reducedSequence || [];
+      this.reducedSpecies = this.reducedSpecies || [];
+      this.reducedSequence.push(this.sequence[index]);
+      this.reducedSpecies.push(key);
     }
   }
 }
