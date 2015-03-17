@@ -82,7 +82,7 @@ SequenceString.prototype.search = function() {
     for (var key = 0; key < this.sequence.length; key++) {
       if (this.multiplicity(this.sequence[key]) > 0 ) { 
         var matched = {
-          species: species[key],
+          species: this.species[key],
           reducedSequence: this.sequence.slice(0),
           reducedSpecies: this.species.slice(0),
           reduced: this.reduced
